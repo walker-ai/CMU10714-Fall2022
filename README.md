@@ -1,10 +1,10 @@
 # Homework 0
 
-### Question 1
+## Question 1
 
 熟悉环境
 
-### Question 2: Loading MNIST data
+## Question 2: Loading MNIST data
 
 `parse_mnist(image_filename, label_filename)` 参数1 image.gz，参数2 label.gz
 
