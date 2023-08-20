@@ -105,8 +105,16 @@ def softmax_loss(Z, y):
         Average softmax loss over the sample.
     """
     ### BEGIN YOUR CODE
-    pass
-    ### END YOUR CODE
+    batch_size, num_classes = Z.shape[0], Z.shape[1]
+    # exp_Z = np.exp(Z)
+    # sum_exp_Z = np.sum(exp_Z, axis=1)
+    # log_sum_exp_Z = np.log(sum_exp_Z)
+    # indices = np.arange(batch_size)
+    # h_y = Z[indices, y[:]]  用到了numpy花式索引
+    
+    average_loss = np.sum(np.log(np.sum(np.exp(Z), axis=1)) - Z[np.arange(batch_size), y[:]]) / batch_size
+    
+    return average_loss    ### END YOUR CODE
 
 
 def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
