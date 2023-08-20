@@ -58,33 +58,22 @@ def parse_mnist(image_filename, label_filename):
 
     img_magic_number = img_buf[:4].hex()
     num_examples = int(img_buf[4:8].hex(), 16)
-    
     num_rows = int(img_buf[8:12].hex(), 16)
     num_cols = int(img_buf[12:16].hex(), 16)
-
     input_dim = num_rows * num_cols
 
-    X = np.zeros((num_examples, input_dim), dtype=np.float32)
-
-    img_index = 16
-    
-    for i in range(num_examples):
-        for j in range(input_dim):
-            X[i][j] = img_buf[img_index] / 255
-            img_index += 1
-    
+    indices_X = 16 + np.arange(num_examples * input_dim)
+    img_buf_array = bytearray(img_buf)
+    X = np.array([img_buf_array[i] for i in indices_X], dtype=np.float32).reshape(num_examples, input_dim)
+    X /= 255
+ 
     # label
-    
     label_magic_number = label_buf[:4].hex()
     
-    y = np.zeros((num_examples, ), dtype=np.uint8)
-    
-    label_index = 8
-    
-    for i in range(num_examples):
-        y[i] = label_buf[label_index]
-        label_index += 1
-    
+    indices_y = 8 + np.arange(num_examples)
+    label_buf_array = bytearray(label_buf)
+    y = np.array([label_buf_array[i] for i in indices_y], dtype=np.uint8)
+
     return (X, y)
     ### END YOUR CODE
 
