@@ -125,7 +125,23 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
         None
     """
     ### BEGIN YOUR CODE
-    pass
+    num_examples, num_classes = X.shape[0], theta.shape[1]
+
+    one_hot_matrix = np.eye(num_classes)[y]
+    Iy = np.stack(one_hot_matrix)
+
+    for i in range(0, num_examples, batch):
+        X_batch = X[i:i+batch]
+        Iy_batch = Iy[i:i+batch]
+
+        # X * theta
+        X_theta = np.dot(X_batch, theta)
+                                                                                                                                            
+       # normalize(exp(X_theta))
+        exps = np.exp(X_theta)
+        Z = exps / np.sum(exps, axis=1, keepdims=True)
+        dTheta = np.dot(X_batch.T, Z - Iy_batch) 
+        theta -= lr * dTheta / batch
     ### END YOUR CODE
 
 
