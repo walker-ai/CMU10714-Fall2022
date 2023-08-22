@@ -32,4 +32,4 @@ $h_j(x)$ 同理. 代码中计算 $h_y(x)$ 用到了 numpy 中的花式索引.
 
 实现公式时, 要理解清楚每个变量代表的含义. $Z = \text{normalize}(\exp (X\theta))$ 等价于 $Z = \text{softmax}(X\theta)$
 
-$\theta$ 代表所需要更新的参数, $X$ 代表输入样本, $I_y$ 代表真实标签转化为独热向量后拼接成的矩阵.
+$\theta$ 代表所需要更新的参数, $X$ 代表输入样本, $I_y\in \mathbb{R}^{B\times k}$ 代表真实标签转化为独热向量后拼接成的矩阵.
