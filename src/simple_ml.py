@@ -168,7 +168,33 @@ def nn_epoch(X, y, W1, W2, lr = 0.1, batch=100):
         None
     """
     ### BEGIN YOUR CODE
-    pass
+    num_examples, input_dim, num_classes, hidden_dim = X.shape[0], X.shape[1], W2.shape[1], W2.shape[0]
+    
+    Iy = np.eye(num_classes)[y]
+
+    ufunc_RELU = np.frompyfunc(lambda x: np.maximum(x, 0.0), 1, 1)
+    ufunc_dRELU = np.frompyfunc(lambda x: 1 if x > 0 else x, 1, 1)
+
+    for i in range(0, num_examples, batch):
+      X_batch = X[i:i+batch]
+      Iy_batch = Iy[i:i+batch]
+       
+      Z1 = ufunc_RELU(np.dot(X_batch, W1))
+      Z1 = Z1.astype(np.float32) # 保证元素格式统一为np.float32
+  
+      Z1W2 = np.dot(Z1, W2)
+      exp_Z1W2 = np.exp(Z1W2)
+       
+      G2 = exp_Z1W2 / np.sum(exp_Z1W2, axis=1, keepdims=True) - Iy_batch
+      
+      G2W2_T = np.dot(G2, W2.T) 
+      G1 = ufunc_dRELU(Z1).astype(np.float32) * G2W2_T
+
+      dW1 = np.dot(X_batch.T, G1) / batch
+      dW2 = np.dot(Z1.T, G2) / batch
+
+      W1 -= lr * dW1
+      W2 -= lr * dW2
     ### END YOUR CODE
 
 
