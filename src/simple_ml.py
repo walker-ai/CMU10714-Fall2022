@@ -128,8 +128,7 @@ def softmax_regression_epoch(X, y, theta, lr = 0.1, batch=100):
     num_examples, num_classes = X.shape[0], theta.shape[1]
 
     # 将真实标签转换为独热向量，然后再拼接成矩阵
-    one_hot_matrix = np.eye(num_classes)[y]
-    Iy = np.stack(one_hot_matrix)
+    Iy = np.eye(num_classes)[y]  
 
     for i in range(0, num_examples, batch):
         X_batch = X[i:i+batch]
