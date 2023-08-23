@@ -33,3 +33,32 @@ $h_j(x)$ 同理. 代码中计算 $h_y(x)$ 用到了 numpy 中的花式索引.
 实现公式时, 要理解清楚每个变量代表的含义. $Z = \text{normalize}(\exp (X\theta))$ 等价于 $Z = \text{softmax}(X\theta)$
 
 $\theta$ 代表所需要更新的参数, $X$ 代表输入样本, $I_y\in \mathbb{R}^{B\times k}$ 代表真实标签转化为独热向量后拼接成的矩阵.
+
+
+## Question 5: SGD for a two-layer neural netwok
+
+与 Question 4 类似, 要求对一个两层的神经网络做小批量梯度下降:
+
+$$
+\begin{equation}
+\begin{split}
+Z_1 \in \mathbb{R}^{m \times d} & = \mathrm{ReLU}(X W_1) \\
+G_2 \in \mathbb{R}^{m \times k} & = \text{normalize}(\exp(Z_1 W_2)) - I_y \\
+G_1 \in \mathbb{R}^{m \times d} & = \mathrm{1}\lbrace Z_1 > 0\rbrace \circ (G_2 W_2^T)
+\end{split}
+\end{equation}
+$$
+
+
+令 $\mathrm{1}\lbrace Z_1 > 0\rbrace$ 为一个二进制矩阵, 其每个元素的值取决于 $Z_1$ 中对应位置上的元素是否严格大于零, 且 $\circ$ 表示逐元素乘法. 则目标函数的梯度如下:
+
+$$
+\begin{equation}
+\begin{split}
+\nabla_{W_1} \ell_{\mathrm{softmax}}(\mathrm{ReLU}(X W_1) W_2, y) & = \frac{1}{m} X^T G_1  \\
+\nabla_{W_2} \ell_{\mathrm{softmax}}(\mathrm{ReLU}(X W_1) W_2, y) & = \frac{1}{m} Z_1^T G_2.  \\
+\end{split}
+\end{equation}
+$$
+
+确定每个变量的含义后, 仿照 Question 4 即可.
