@@ -62,3 +62,7 @@ $$
 $$
 
 确定每个变量的含义后, 仿照 Question 4 即可.
+
+## Question 6: Softmax regression in C++
+
+将问题4中的python代码翻译成C++版本, 前提不能使用任何库. 在实现矩阵乘法时, 用嵌套循环代替 numpy 中的 dot 操作.
