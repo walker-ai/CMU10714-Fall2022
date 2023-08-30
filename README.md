@@ -108,4 +108,7 @@ C = A + B
 ```
 
 BroadCastTo 和 Summation 梯度计算的原理是相同的, `out_grad` 的维度与输入不一致, 需要找出具体哪一个轴不一致, 然后用 `broadcast_to` 或 `summation` 将不一致的轴进行扩展或求和去除.
+## Question 3: Topological sort
+
+按照题目要求, 以给定的 `node_list` 为拓扑序列终点, 结合辅助函数 `topo_sort_dfs(node, visited, topo_order)` 进行后序深度优先遍历即可. 
 
