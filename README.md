@@ -112,3 +112,40 @@ BroadCastTo 和 Summation 梯度计算的原理是相同的, `out_grad` 的维�
 
 按照题目要求, 以给定的 `node_list` 为拓扑序列终点, 结合辅助函数 `topo_sort_dfs(node, visited, topo_order)` 进行后序深度优先遍历即可. 
 
+
+## Question 4: Implementing reverse mode differentiation
+
+实现函数 `compute_gradient_of_variables(output_tensor, out_grad)`: 
+
+![Reverse AD algorithm](https://i.postimg.cc/HsHFX9zH/Snipaste-2023-08-30-17-34-29.png)
+
+这里简单介绍下涉及到的几个函数以及属性:
+
+Value 是一个基类, 它有 `op`, `inputs` 等属性, `Tensor` 继承自 `Value`, 计算图中的每个节点就是一个 `Tensor`. 每个节点都有一个算子 `op` 的属性, 当然 `op` 也有可能为 `None`.`Tensor.op.gradient` 或 `Tensor.op.gradient_as_tuple` 可以计算其所有输入的梯度, 二者区别仅在于 `Tensor.op.gradient` 的输出是 `Union["Value", Tuple["Value"]]`, `Tensor.op.gradient` 的输出只可能是 `Tuple["Value"]`.
+
+例如该图:
+
+
+
+![Reverse mode automatic differentiation(AD)](https://i.postimg.cc/nhZ8ZMXV/Snipaste-2023-08-30-17-50-38.png)
+
+其中:
+
+$$
+\begin{equation} 
+\begin{split}
+\overline{v_4} &= \overline{v_6}\dfrac{\partial v_6}{\partial v_4}  \\
+\overline{v_3} &= \overline{v_6}\dfrac{\partial v_6}{\partial v_3}  
+\end{split}
+\end{equation}
+$$
+
+$v_6 = v_3 + v_4$, 通过 `v6.op.gradient(v6.grad, v6)` 即可得到 $\overline{v_6}\dfrac{\partial v_6}{\partial v_3}$ 和 $\overline{v_6}\dfrac{\partial v_6}{\partial v_4}$
+
+简单来说, `Tensor.op.gradient` 和 `Tensor.op.gradient_as_tuple`  返回的是 `Tensor` 本身对所有 `Tensor` 的输入 $i$ 的 $\overline{ v_{i\rightarrow j}  } = \overline{v_j}\dfrac{\partial v_j}{\partial v_i}$, 其中 $j$ 指代 `Tensor`
+
+而 `Tensor` 本身这个节点的 `node.grad`, 即自身的梯度, 计算方式为:
+
+$$
+\overline v_i = \sum_{j\in next(i)}  \overline{ v_{i\rightarrow j}  } 
+$$
