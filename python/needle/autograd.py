@@ -398,7 +398,21 @@ def compute_gradient_of_variables(output_tensor, out_grad):
     reverse_topo_order = list(reversed(find_topo_sort([output_tensor])))
 
     ### BEGIN YOUR SOLUTION
-    raise NotImplementedError()
+
+
+    for node in reverse_topo_order:
+        adj_vi = sum(node_to_output_grads_list[node])
+        node.grad = adj_vi
+
+        if node.op is None:
+            continue
+
+        for i, grad in enumerate(node.op.gradient_as_tuple(node.grad, node)):
+            k = node.inputs[i]
+            if k not in node_to_output_grads_list:
+                node_to_output_grads_list[k] = []
+            node_to_output_grads_list[k].append(grad)
+
     ### END YOUR SOLUTION
 
 
