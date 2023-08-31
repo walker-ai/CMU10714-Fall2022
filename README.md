@@ -149,3 +149,7 @@ $v_6 = v_3 + v_4$, 通过 `v6.op.gradient(v6.grad, v6)` 即可得到 $\overline{
 $$
 \overline v_i = \sum_{j\in next(i)}  \overline{ v_{i\rightarrow j}  } 
 $$
+
+## Question 5: Softmax loss
+
+与 hw0 中实现 Softmax loss 一致, 区别只是将 numpy 中的方法换成这里实现的 needle 中的方法. 要注意一个点调用 `ndl.ops.summation(a, axes=None)` 时, `axes = (1, )` 要用元组表示, 否则计算 gradient 的时候无法对轴进行遍历.
