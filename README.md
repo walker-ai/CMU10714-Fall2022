@@ -153,3 +153,16 @@ $$
 ## Question 5: Softmax loss
 
 与 hw0 中实现 Softmax loss 一致, 区别只是将 numpy 中的方法换成这里实现的 needle 中的方法. 要注意一个点调用 `ndl.ops.summation(a, axes=None)` 时, `axes = (1, )` 要用元组表示, 否则计算 gradient 的时候无法对轴进行遍历.
+
+## Question 6: SGD for a two-layer neural network
+
+softmax 损失为:
+
+$$ \ell_{\text{softmax}}(z, y) = \log \sum_{i=1}^{k}\exp z_i - z_y$$
+
+对于这里的两层神经网络, $z = \text{ReLU}(XW_1)W_2$. 其中, $X\in \mathbb{R}^{m\times k}$, $W_1\in \mathbb{R}^{n\times d}$, $W_2\in \mathbb{R}^{d\times k}$. $y\in \mathbb{R}^{m\times k}$ 由 $m$ 个真实标签对应的独热向量所拼接而成, $z_y\in \mathbb{R}^{m\times k}, z_y = z\circ y$ 则表示真实标签所对应的预测值.
+
+做完所有的前向计算后, 用最后计算的结果进行 `.backward()` 运算, 这将自动对所有参数(前提是 `requires_grad=True`)进行微分, 并将各参数的梯度存储至其对象 `node.grad` 中.
+
+需要注意的是, 这里在对 $W_1, W_2$ 进行梯度下降时, 需要用其对象的纯数据即 `W1.data`, `W2.data`, 这使得能够直接操作 `Tensor` 对象的底层数据, 可以避免创建中间Tensor对象和进行数据类型转换的开销, 因此代码的运行时间会更快. 经测试使用底层数据只需 40 几秒左右, 而直接使用
+`W1` 和 `W2` 进行更新则需要 5 分半.
