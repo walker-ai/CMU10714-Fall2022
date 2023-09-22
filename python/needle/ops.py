@@ -184,7 +184,7 @@ class BroadcastTo(TensorOp):
         dele_axes = []
 
         for i, s in enumerate(self.shape):
-            if i >= len(a_shape) or s != shape[i]:
+            if i >= len(shape) or s != shape[i]:
                 dele_axes.append(i)
         return reshape(summation(out_grad, tuple(dele_axes)), a_shape)
         ### END YOUR SOLUTION
