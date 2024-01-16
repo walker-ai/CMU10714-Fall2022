@@ -184,14 +184,15 @@ for i, param in enumerate(self.params):
 
 朴素SGD结合了其他优化方法的 optimizer, paper链接:[Adam: A Method for Stochastic Optimization](https://arxiv.org/abs/1412.6980).
 
+
 $$
-\begin{split}
+\begin{align}
 u_{t+1} &= \beta_1 u_t + (1-\beta_1) \nabla_\theta f(\theta_t) \\
 v_{t+1} &= \beta_2 v_t + (1-\beta_2) (\nabla_\theta f(\theta_t))^2 \\
-\hat{u}_{t+1} &= u_{t+1} / (1 - \beta_1^t) \quad \text{(bias correction)} \\
-\hat{v}_{t+1} &= v_{t+1} / (1 - \beta_2^t) \quad \text{(bias correction)}\\
+\hat{u}_ {t+1} &= u_{t+1} / (1 - \beta_1^t) \quad \text{(bias correction)} \\
+\hat{v}_ {t+1} &= v_{t+1} / (1 - \beta_2^t) \quad \text{(bias correction)}\\
 \theta_{t+1} &= \theta_t - \alpha \hat{u_{t+1}}/(\hat{v}_{t+1}^{1/2}+\epsilon)
-\end{split}
+\end{align}
 $$
 
 实现过程类似于上面的动量法SGD
