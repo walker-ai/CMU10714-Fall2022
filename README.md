@@ -161,3 +161,137 @@ for (size_t i = 0; i < shape[0]; i++)
 // END SOLUTION
 ```
 
+
+## Part 6: CUDA Backend - Compact and setitem
+
+实现 CUDA 版的
+
+- `Compact()`
+- `EwiseSetitem()`
+- `ScalarSetitem()`
+
+✅ [CUDA极简入门指南](https://zhuanlan.zhihu.com/p/34587739) 
+
+CUDA 版的调用一般要写两个函数，一个是在cpu中负责调用gpu中的kernel函数的调用函数，另一个是负责在GPU中并行执行的内核函数，用 `__global__` 声明。
+
+例如本例中的 `Compact()` 实现：
+
+```c++
+__global__ void CompactKernel(const scalar_t* a, scalar_t* out, size_t size, CudaVec shape,
+                              CudaVec strides, size_t offset) {
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+
+  /// BEGIN SOLUTION
+
+  // 这里总的循环次数加起来是gid，但是要分清楚i，j，k分别循环了多少次
+  // 因为k在最内层循环，所以按照循环顺序必须倒着累积
+  if (gid < size) {
+    size_t gid_a = 0;
+    size_t tmp = gid;
+    for (int i=shape.size-1; i>=0; i--) {
+      size_t idx = tmp % shape.data[i];
+      tmp /= shape.data[i];
+      gid_a += idx * strides.data[i];
+    }
+    out[gid] = a[gid_a + offset];
+  }
+  /// END SOLUTION
+}
+
+void Compact(const CudaArray& a, CudaArray* out, std::vector<int32_t> shape,
+             std::vector<int32_t> strides, size_t offset) {
+  // Nothing needs to be added here
+  CudaDims dim = CudaOneDim(out->size);
+  CompactKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, out->size, VecToCuda(shape),
+                                         VecToCuda(strides), offset);
+}
+```
+
+`EwiseSetitem()和ScalarSetitem()` 跟 `Compact()` 类似。
+
+
+## Part 7: CUDA Backend - Elementwise and scalar operations
+
+同 CPU Backend 一样，实现如下函数，比较简单且冗余，同样可以用 C++ 的宏或者模版简化代码。
+
+- `EwiseMul(), ScalarMul()`
+- `EwiseDiv(), ScalarDiv()`
+- `ScalarPower()`
+- `EwiseMaximum(), ScalarMaximum()`
+- `EwiseEq(), ScalarEq()`
+- `EwiseGe(), ScalarGe()`
+- `EwiseLog()`
+- `EwiseExp()`
+- `EwiseTanh()`
+
+
+## Part 8: CUDA Backend - Reductions
+
+原理在于用一个线程完成一个维度（总维度数：`reduce_size`）的缩减。
+
+```c++
+__global__ void ReduceMaxKernel(const scalar_t* a, scalar_t* out, size_t size, size_t reduce_size) {
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if (gid < size) {
+    scalar_t res = a[gid * reduce_size];
+    for (size_t i = 0; i < reduce_size; i ++ ) {
+      res = max(res, a[gid * reduce_size + i]);
+    }
+    out[gid] = res;
+  }
+}
+
+void ReduceMax(const CudaArray& a, CudaArray* out, size_t reduce_size) {
+  /// BEGIN SOLUTION
+  CudaDims dim = CudaOneDim(out->size);
+  ReduceMaxKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, out->size, reduce_size);
+  /// END SOLUTION
+}
+
+__global__ void ReduceSumKernel(const scalar_t* a, scalar_t* out, size_t size, size_t reduce_size) {
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if (gid < size) {
+    scalar_t res = 0;
+    for (size_t i = 0; i < reduce_size; i ++ ) {
+      res += a[gid * reduce_size + i];
+    }
+    out[gid] = res;
+  }
+}
+
+void ReduceSum(const CudaArray& a, CudaArray* out, size_t reduce_size) {
+  /// BEGIN SOLUTION
+  CudaDims dim = CudaOneDim(out->size);
+  ReduceSumKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, out->size, reduce_size);
+  /// END SOLUTION
+}
+```
+
+## Part 9: CUDA Backend - Matrix multiplication
+
+用 CUDA 实现高效矩阵乘法是一个高度热门的话题。这里只给出vanilla版的cuda实现，虽然也可以通过测试样例，但是题目鼓励使用tile等优化方法来进一步优化GEMM，详情可以查看更深入的资料。
+
+```c++
+__global__ void MatmulKernel(const scalar_t* a, const scalar_t* b, scalar_t* out, size_t size, size_t M, size_t N, size_t P) {
+  // gid是结果矩阵里的紧凑索引，让out矩阵中的每一个元素都用一个线程来完成。
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
+  if (gid < size) {
+    scalar_t res = 0;
+    size_t row_a = gid / P, col_b = gid % P;
+    for (size_t i = 0; i < N; i ++ ) {
+      res += a[row_a * N + i] * b[i * P + col_b];
+    }
+    out[gid] = res;
+  }
+}
+
+// 先实现一个vanilla实现版本
+void Matmul(const CudaArray& a, const CudaArray& b, CudaArray* out, size_t M, size_t N,
+            size_t P) {
+  /// BEGIN SOLUTION
+  CudaDims dim = CudaOneDim(out->size);
+  MatmulKernel<<<dim.grid, dim.block>>>(a.ptr, b.ptr, out->ptr, out->size,  M,  N, P);
+  /// END SOLUTION
+}
+```
+
