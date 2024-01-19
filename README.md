@@ -125,6 +125,8 @@ for (size_t i = 0; i < shape[0]; i++)
 
 分块矩乘中的 `matmul_titled` 有一个点不是很明白，即 `tile` 的内存分布为什么是一块一块的而不是严格按照行存储：
 
+通过后面的的关于convolution implementation的lecture得知，底层存储tile形式的矩阵，为了使其内存是compact的，所以需要一块一块存，块与块之间的内存是相邻的。
+
 ```c++
 // BEGIN SOLUTION
   float *tmp = new float[TILE * TILE];
